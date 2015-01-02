@@ -126,6 +126,33 @@ module Moon
       self
     end
 
+    private def rotate_cw
+      result = self.class.new(ysize, xsize, default: default)
+      ys = ysize - 1
+      each_with_xy do |n, x, y|
+        result[ys - y, x] = n
+      end
+      result
+    end
+
+    private def rotate_ccw
+      result = self.class.new(ysize, xsize, default: default)
+      xs = xsize - 1
+      each_with_xy do |n, x, y|
+        result[y, xs - x] = n
+      end
+      result
+    end
+
+    private def rotate_flip
+      result = self.class.new(xsize, ysize, default: default)
+      xs, ys = xsize - 1, ysize - 1
+      each_with_xy do |n, x, y|
+        result[xs - x, ys - y] = n
+      end
+      result
+    end
+
     ##
     # Rotate the Table data, returns a new Table with the rotated data
     #
@@ -133,29 +160,10 @@ module Moon
     # @return [Table]
     def rotate(angle)
       case (angle % 360)
-      when 0
-        dup
-      when 90
-        result = self.class.new(ysize, xsize, default: default)
-        ys = ysize - 1
-        each_with_xy do |n, x, y|
-          result[ys - y, x] = n
-        end
-        result
-      when 180
-        result = self.class.new(xsize, ysize, default: default)
-        xs, ys = xsize - 1, ysize - 1
-        each_with_xy do |n, x, y|
-          result[xs - x, ys - y] = n
-        end
-        result
-      when 270
-        result = self.class.new(ysize, xsize, default: default)
-        xs = xsize - 1
-        each_with_xy do |n, x, y|
-          result[y, xs - x] = n
-        end
-        result
+      when 0   then dup
+      when 90  then rotate_cw
+      when 180 then rotate_flip
+      when 270 then rotate_ccw
       else
         raise RuntimeError, "unsupported rotation angle #{angle}"
       end
