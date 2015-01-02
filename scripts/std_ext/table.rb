@@ -1,5 +1,25 @@
 module Moon
   class Table
+    private def blit_xywh_with_block(table, x, y, sx, sy, sw, sh)
+      sh.times do |fy|
+        sw.times do |fx|
+          n = table[sx + fx, sy + fy]
+          self[x + fx, y + fy] = table[sx + fx, sy + fy] if yield n
+        end
+      end
+      self
+    end
+
+    ##
+    # @return [self]
+    private def blit_xywh_without_block(table, x, y, sx, sy, sw, sh)
+      sh.times do |fy|
+        sw.times do |fx|
+          self[x + fx, y + fy] = table[sx + fx, sy + fy]
+        end
+      end
+      self
+    end
     ##
     #
     # @param [Moon::Table] table
@@ -10,22 +30,12 @@ module Moon
     # @param [Integer] sw
     # @param [Integer] sh
     # @return [self]
-    def blit_xywh(table, x, y, sx, sy, sw, sh)
+    def blit_xywh(*args, &block)
       if block_given?
-        sh.times do |fy|
-          sw.times do |fx|
-            n = table[sx + fx, sy + fy]
-            self[x + fx, y + fy] = table[sx + fx, sy + fy] if yield n
-          end
-        end
+        blit_xywh_with_block(*args, &block)
       else
-        sh.times do |fy|
-          sw.times do |fx|
-            self[x + fx, y + fy] = table[sx + fx, sy + fy]
-          end
-        end
+        blit_xywh_without_block(*args)
       end
-      self
     end
 
     ##
