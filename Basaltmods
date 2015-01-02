@@ -1,0 +1,9 @@
+set install_dir: 'modules'
+
+mod 'std'
+mod 'data_model'
+mod 'render_primitives'
+mod 'lunar'
+mod 'scheduler'
+mod 'debug'
+mod 'quick'

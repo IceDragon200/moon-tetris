@@ -1,0 +1,5 @@
+require 'scripts/states/base'
+require 'scripts/states/game'
+require 'scripts/states/options'
+require 'scripts/states/splash'
+require 'scripts/states/title'
