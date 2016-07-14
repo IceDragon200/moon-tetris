@@ -6,7 +6,7 @@ module States
       super
       @session = MoonTetris.session
       @controller = MoonTetris::Controller.new(@session)
-      @view = MoonTetris::View.new(session: @session)
+      @view = MoonTetris::View.new(session: @session).tag('game.view')
       @controller.setup_input(middleware(InputMiddleware).handle)
     end
 
@@ -14,10 +14,10 @@ module States
       super
       @controller.update(delta)
       @view.update(delta)
+      render
     end
 
     def render
-      super
       @view.render
     end
   end

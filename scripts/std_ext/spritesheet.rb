@@ -1,7 +1,7 @@
 module Moon
   class Spritesheet
     def cell_size
-      Vector2.new cell_width, cell_height
+      Moon::Vector2.new w, h
     end
   end
 end

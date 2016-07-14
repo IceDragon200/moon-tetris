@@ -29,11 +29,13 @@ class Chipmap < Moon::RenderContext
     @height ||= cell_size.y * data.ysize
   end
 
-  def render_content(x, y, z, options)
-    cw, ch = @spritesheet.cell_width, @spritesheet.cell_height
+  def render_content(x, y, z)
+    cw, ch = @spritesheet.w, @spritesheet.h
     @data.iter.each_with_xy do |n, fx, fy|
       next if n == IGNORE
-      @spritesheet.render x + cw * fx, y + ch * fy, z, n
+      sx, sy, sz = x + cw * fx, y + ch * fy, z
+      #puts [sx, sy, sz].inspect
+      @spritesheet.render sx, sy, sz, n
     end
     super
   end

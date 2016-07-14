@@ -340,7 +340,7 @@ module MoonTetris
     attr_reader :active_block
 
     def refresh_active_block
-      self.position = @active_block.position.to_vec3 * cell_size
+      self.position = Moon::Vector3[@active_block.position * cell_size, 0]
       self.data = @active_block.data
     end
 
@@ -358,14 +358,15 @@ module MoonTetris
   class View < Moon::RenderContainer
     attr_reader :session
 
-    def init_from_options(options)
+    def initialize_from_options(options)
       super
       @session = options.fetch(:session)
     end
 
-    def init_content
+    def initialize_content
       super
-      @spritesheet = Moon::Spritesheet.new('resources/blocks/block_16x16_007.png', 16, 16)
+      @ss_texture = Moon::Texture.new 'resources/blocks/block_16x16_007.png'
+      @spritesheet = Moon::Spritesheet.new(@ss_texture, 16, 16)
       @cell_size = @spritesheet.cell_size
       @playzone = Chipmap.new
       @playzone.spritesheet = @spritesheet
@@ -378,9 +379,10 @@ module MoonTetris
       @session.reset_ch = @reset_ch
 
       @game_window = Moon::RenderContainer.new
+      @game_window.tag 'view.game_window'
       @game_window.add @playzone
       @game_window.add @active_block
-      @game_window.position.x = ((Moon::Screen.width - @game_window.width) / 2).to_i
+      @game_window.position.x = 0 #((@engine.screen.width - @game_window.width) / 2).to_i
       @game_window.position.y -= @cell_size.y * 2
       add @game_window
     end
@@ -408,7 +410,7 @@ module MoonTetris
       super
     end
 
-    def render_content(x, y, z, o)
+    def render_content(x, y, z)
       super
       @spritesheet.render(x + @game_window.x + @playzone.data.xsize * @cell_size.x,
                           y + @game_window.y + @playzone.data.ysize * @cell_size.y,

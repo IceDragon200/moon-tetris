@@ -10,10 +10,10 @@ MoonTetris.session = MoonTetris::Session.new
 MoonTetris.session.new_game
 
 def step(engine, delta)
-  #@state ||= RendererWindowskinTest.new(engine)
-  #@state ||= RendererTest.new(engine)
-  @state ||= States::Game.new(engine)
-  #@state ||= TilemapTest.new(engine)
-  #@state ||= SpritesheetTest.new(engine)
-  @state.update(delta)
+  @state_manager ||= begin
+    sm = Moon::StateManager.new(engine)
+    sm.push States::Game
+    sm
+  end
+  @state_manager.step(delta)
 end
