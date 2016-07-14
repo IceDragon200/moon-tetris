@@ -1,1 +1,1 @@
-require 'core/modules'
+require 'packages/load'

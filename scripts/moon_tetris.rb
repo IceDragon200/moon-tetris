@@ -28,10 +28,10 @@ module MoonTetris
   end
 
   class Block < Moon::DataModel::Metal
-    field :data,     type: Moon::Table,   default: proc{|t|t.new(4, 4, default: IGNORE)}
-    field :pivot,    type: Moon::Vector2, default: proc{|t|t.new(0, 0)}
-    field :position, type: Moon::Vector2, default: proc{|t|t.new(0, 0)}
-    field :bounds,   type: Moon::Rect,    default: proc{|t|t.new(0, 0, 4, 4)}
+    field :data,     type: Moon::Table,   default: proc{ |t| t.model.new(4, 4, default: IGNORE) }
+    field :pivot,    type: Moon::Vector2, default: proc{ |t| t.model.new(0, 0) }
+    field :position, type: Moon::Vector2, default: proc{ |t| t.model.new(0, 0) }
+    field :bounds,   type: Moon::Rect,    default: proc{ |t| t.model.new(0, 0, 4, 4) }
     field :can_flip, type: Boolean,       default: true
 
     def rotate(angle)
@@ -62,7 +62,7 @@ module MoonTetris
     array :blocks,       type: Block
     field :difficulty,   type: Integer, default: Difficulty::NORMAL
 
-    def post_init
+    def post_initialize
       super
       self.block_colors = (0..24).to_a
       make_templates
@@ -134,29 +134,30 @@ module MoonTetris
     end
 
     private def new_template(smap, *bounds)
-      @ref ||= {
+      @dict ||= {
         ' ' => IGNORE,
         '#' => 0
       }
       r = Moon::Rect.new(*bounds)
       b = Block.new
       b.bounds = r
-      b.data.resize(r.width.to_i, r.height.to_i)
-      b.data.set_from_strmap(smap, @ref)
+      b.data.resize(r.w.to_i, r.h.to_i)
+      b.data.set_by_dict(smap, @dict)
       blocks << b
       b
     end
 
     def new_block
       block = blocks.sample.copy
-      block.data.replace(0, block_colors.sample)
+      p = Moon::Painter2.new(block.data)
+      p.replace(0, block_colors.sample)
       block
     end
   end
 
   class Playzone < Moon::DataModel::Metal
-    field :data,   type: Moon::Table, default: proc{|t|t.new(10, 22, default: IGNORE)}
-    field :bounds, type: Moon::Rect,  default: proc{|t|t.new(0, 0, 0, 0)}
+    field :data,   type: Moon::Table, default: proc{ |t| t.model.new(10, 22, default: IGNORE) }
+    field :bounds, type: Moon::Rect,  default: proc{ |t| t.model.new(0, 0, 0, 0) }
 
     def calculate_bounds
       self.bounds = MoonTetris.calculate_table_bounds(data)
@@ -177,11 +178,11 @@ module MoonTetris
   end
 
   class Session < Moon::DataModel::Metal
-    field :stats,         type: Stats,        default: proc{|t|t.new}
-    field :block_factory, type: BlockFactory, default: proc{|t|t.new}
+    field :stats,         type: Stats,        default: proc { |t| t.model.new }
+    field :block_factory, type: BlockFactory, default: proc { |t| t.model.new }
     field :active_block,  type: Block,        default: nil
     field :next_block,    type: Block,        default: nil
-    field :playzone,      type: Playzone,     default: proc{|t|t.new}
+    field :playzone,      type: Playzone,     default: proc { |t| t.model.new }
 
     attr_accessor :reset_ch
 
@@ -191,7 +192,7 @@ module MoonTetris
     end
 
     def center_block(block)
-      block.position.x = ((playzone.data.xsize - block.bounds.width) / 2).to_i
+      block.position.x = ((playzone.data.xsize - block.bounds.w) / 2).to_i
       block.position.y -= block.bounds.y2
       block
     end
@@ -225,8 +226,8 @@ module MoonTetris
     def place_block
       b = @session.active_block
       p = b.position
-
-      @session.playzone.data.blit(b.data, p.x, p.y, b.data.rect) do |n, _, _|
+      pnt = Moon::Painter2.new(@session.playzone.data)
+      pnt.blit(b.data, p.x, p.y, b.data.rect) do |n, _, _|
         n != IGNORE
       end
 
@@ -250,7 +251,7 @@ module MoonTetris
         b.data.xsize.times do |x|
           n = b.data[x, y]
           dx, dy = bb.x + x, bb.y + y
-          if d.in_bounds?(dx, dy) && d[dx, dy] != IGNORE && n != IGNORE
+          if d.contains?(dx, dy) && d[dx, dy] != IGNORE && n != IGNORE
             # move the block up space to avoid intersecting
             b.position.y -= 1
             #puts "#{[dx, dy]} BLOCK COLLIDE! #{bb.inspect}"
@@ -373,7 +374,7 @@ module MoonTetris
       refresh_playzone
       refresh_active_block
 
-      @reset_ch = Channel.new
+      @reset_ch = Buffer.new
       @session.reset_ch = @reset_ch
 
       @game_window = Moon::RenderContainer.new
